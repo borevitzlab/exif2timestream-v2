@@ -64,7 +64,7 @@
 <li><a class="reference internal" href="#instructions">Instructions</a></li>
 <li><a class="reference internal" href="#options">Options</a></li>
 <li><a class="reference internal" href="#archive-modes">Archive Modes</a></li>
-<li><a class="reference internal" href="#env-vars">Env Vars</a></li>
+<li><a class="reference internal" href="#env-vars-notes">Env Vars / Notes</a></li>
 <li><a class="reference internal" href="#requirements">Requirements</a></li>
 </ul>
 </li>
@@ -99,8 +99,8 @@
 </div>
 <div class="section" id="instructions">
 <h2>Instructions<a class="headerlink" href="#instructions" title="Permalink to this headline">§</a></h2>
-<p>Run from command line with specific arguments/batch mode from yaml file</p>
-<p>Command line help:</p>
+<p>Run from command line with specific arguments/batch mode from yaml file.</p>
+<p>Command line help example:</p>
 <p><cite>exif2timestream-cli –help</cite></p>
 <p>batch mode:</p>
 <p><cite>exif2timestream-batch example.yml</cite></p>
@@ -155,8 +155,8 @@ leaves the source images in their original location</p>
 </tbody>
 </table>
 </div>
-<div class="section" id="env-vars">
-<h2>Env Vars<a class="headerlink" href="#env-vars" title="Permalink to this headline">§</a></h2>
+<div class="section" id="env-vars-notes">
+<h2>Env Vars / Notes<a class="headerlink" href="#env-vars-notes" title="Permalink to this headline">§</a></h2>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -170,6 +170,7 @@ using rawkit allows skipping of vips magickload (which isnt very good)</td>
 </tr>
 </tbody>
 </table>
+<p>Unfortunately running from within a virtualenv is not supported if you want to use Vips.</p>
 </div>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">§</a></h2>

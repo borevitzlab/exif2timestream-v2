@@ -26,10 +26,12 @@ Please cite: *Brown, Tim B., et al.* `TraitCapture : genomic and environment mod
 
 Instructions
 ------------
-Run from command line with specific arguments/batch mode from yaml file
+
+Run from command line with specific arguments/batch mode from yaml file.
 
 
-Command line help:
+
+Command line help example:
 
 `exif2timestream-cli --help`
 
@@ -76,7 +78,7 @@ Archive Modes
       removes the source images after processing
 
 
-Env Vars
+Env Vars / Notes
 --------
 
 :FORCE_PIL:
@@ -89,6 +91,7 @@ Env Vars
    using rawkit allows skipping of vips magickload (which isnt very good)
 
 
+Unfortunately running from within a virtualenv is not supported if you want to use Vips.
 
 Requirements
 ------------
