@@ -3,7 +3,7 @@ from . import image
 from . import time
 from .directorydb import DirectoryDB
 import traceback
-import shutil
+# import shutil
 import os
 import sys
 from .archiver import Archiver
