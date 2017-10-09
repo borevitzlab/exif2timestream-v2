@@ -6,7 +6,7 @@
    :hidden:
 
    ansible
-   py-modindex
+   libexif2timestream
 
 
 exif2timestream-v2
@@ -31,13 +31,11 @@ Run from command line with specific arguments/batch mode from yaml file
 
 Command line help:
 
-`./cli.py --help`
+`exif2timestream-cli --help`
 
 batch mode:
 
-`./batch.py example.yml`
-
-
+`exif2timestream-batch example.yml`
 
 
 Options
@@ -100,7 +98,7 @@ These requirements are specified and provide installation methods within the ans
 *os:*
  * exiv2
  * exifread
- * libvips with python bindings (see :doc:`ansible` )
+ * libvips with python bindings (see :doc:`ansible`, optional)
 
 *python/aur/extra*
  * piexif

@@ -2,7 +2,7 @@ SubModules
 ==========
 
 libexif2timestream2
------------
+-------------------
 
 .. automodule:: libexif2timestream2.archiver
     :members:
