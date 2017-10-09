@@ -11,7 +11,6 @@ os.environ['VIPS_WARNING'] = "0"
 if not os.environ.get("FORCE_PIL", None):
     try:
         import gi
-
         gi.require_version("Vips", '8.0')
         from gi.repository import Vips
 
