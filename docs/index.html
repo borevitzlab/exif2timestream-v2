@@ -1,0 +1,215 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>exif2timestream-v2 &#8212; exif2timestream-v2 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ansible vips Deployment" href="ansible.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">exif2timestream-v2</a></h1>
+
+
+
+<p class="blurb">Software to convert unstructured directories of images into a tree like file structure.</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ansible.html">Ansible vips Deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">General Index</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-modindex.html">Module Index</a></li>
+</ul>
+
+
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">exif2timestream-v2</a><ul>
+<li><a class="reference internal" href="#credits-license">Credits/License</a></li>
+<li><a class="reference internal" href="#instructions">Instructions</a></li>
+<li><a class="reference internal" href="#options">Options</a></li>
+<li><a class="reference internal" href="#archive-modes">Archive Modes</a></li>
+<li><a class="reference internal" href="#env-vars">Env Vars</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+</ul>
+</li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="toctree-wrapper compound" id="mastertoc">
+</div>
+<div class="section" id="exif2timestream-v2">
+<h1>exif2timestream-v2<a class="headerlink" href="#exif2timestream-v2" title="Permalink to this headline">§</a></h1>
+<div class="section" id="credits-license">
+<h2>Credits/License<a class="headerlink" href="#credits-license" title="Permalink to this headline">§</a></h2>
+<p>The goal of this project is to create a robust image processing and structuring.</p>
+<p>This project is open source but please <a class="reference external" href="https://github.com/borevitzlab">contact us</a> before using the code so we can know who is using it and please make sure to link back here in any code you use. This project is in active development but we are happy to work with other groups to develop new features so drop us a line if you are interested.</p>
+<p>This code was developed for the TraitCapture project at ANU.</p>
+<p>Please cite: <em>Brown, Tim B., et al.</em> <a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S1369526614000181">TraitCapture : genomic and environment modelling of plant phenomic data. Current opinion in plant biology 18 (2014): 73-79</a>. when using the code.</p>
+</div>
+<div class="section" id="instructions">
+<h2>Instructions<a class="headerlink" href="#instructions" title="Permalink to this headline">§</a></h2>
+<p>Run from command line with specific arguments/batch mode from yaml file</p>
+<p>Command line help:</p>
+<p><cite>./cli.py –help</cite></p>
+<p>batch mode:</p>
+<p><cite>./batch.py example.yml</cite></p>
+</div>
+<div class="section" id="options">
+<h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">§</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">depth:</th><td class="field-body">how many levels under the source directory to scan for images</td>
+</tr>
+<tr class="field-even field"><th class="field-name">rotation:</th><td class="field-body">90 degree increment to rotate the source images, removes the orientation exif tag.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">pyramid:</th><td class="field-body">whether to also create tiled pyramidal tiffs for each image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">resolutions:</th><td class="field-body">the output resolutions to write</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">output_image_type:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">the output image types to write</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="archive-modes">
+<h2>Archive Modes<a class="headerlink" href="#archive-modes" title="Permalink to this headline">§</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">copy:</th><td class="field-body"><p class="first">leave source images in their original location</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">move:</th><td class="field-body"><p class="first">remove source images after processing</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">archive:</th><td class="field-body"><dl class="first docutils">
+<dt>create a new tarball of the source images for this time range</dt>
+<dd><p class="first last">overwrites any previous archives
+leaves the source images in their original location</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">archive-rm:</th><td class="field-body"><dl class="first last docutils">
+<dt>updates a tarball (creates if it doesn’t exist) with the source images</dt>
+<dd><p class="first last">removes the source images after processing</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="env-vars">
+<h2>Env Vars<a class="headerlink" href="#env-vars" title="Permalink to this headline">§</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">FORCE_PIL:</th><td class="field-body">options: “true”, unset
+forces exif2timestream-v2 to use PIL instead of libvips, can be helpful if debugging etc.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">NO_RAWKIT:</th><td class="field-body">options: “true”, unset
+forces exif2timestream-v2 to not use rawkit to convert images first to tiffs temporarily.
+using rawkit allows skipping of vips magickload (which isnt very good)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">§</a></h2>
+<p>These requirements are specified and provide installation methods within the ansible playbook.</p>
+<dl class="docutils">
+<dt><em>os:</em></dt>
+<dd><ul class="first last simple">
+<li>exiv2</li>
+<li>exifread</li>
+<li>libvips with python bindings (see <a class="reference internal" href="ansible.html"><span class="doc">Ansible vips Deployment</span></a> )</li>
+</ul>
+</dd>
+<dt><em>python/aur/extra</em></dt>
+<dd><ul class="first last simple">
+<li>piexif</li>
+<li>pillow <a class="reference external" href="https://pypi.python.org/pypi/Pillow/3.1.1">[pip]</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2017, Gareth Dunstone, Kevin Murray, Tim Brown, Jordan Braiuka.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
