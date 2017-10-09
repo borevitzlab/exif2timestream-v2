@@ -1,13 +1,10 @@
 # from distutils.core import setup
 from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
 setup(
     name='exif2timestream-v2',
-    version='0.9.2',
-    python_requires='>=3.2',
+    version='0.9.6',
+    # python_requires='>=3.2',
     packages=['libexif2timestream2', 'exif2timestream_scripts'],
     url='https://borevitzlab.github.io/exif2timestream/',
     license='GPLv3',
@@ -28,5 +25,13 @@ setup(
             'exif2timestream-cli = exif2timestream_scripts.exif2timestream_cli:main'
         ]
     },
-    install_requires=requirements
+    install_requires=[
+        "Pillow>=4.2.1",
+        "python-dateutil>=2.6.1",
+        "pytz>=2017.2",
+        "PyYAML>=3.12",
+        "tqdm>=4.11.2",
+        "piexif>=1.0.12"
+    ]
 )
+
