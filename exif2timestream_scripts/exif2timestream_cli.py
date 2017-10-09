@@ -7,6 +7,7 @@ from libexif2timestream2.time import verbose_timedelta, str_to_datetime
 from libexif2timestream2.process import process_timestream
 from libexif2timestream2.image import detect_backends
 
+
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
         if text.startswith('r|'):
@@ -14,16 +15,22 @@ class SmartFormatter(argparse.HelpFormatter):
         # this is the RawTextHelpFormatter._split_lines
         return argparse.HelpFormatter._split_lines(self, text, width)
 
+
 parser = argparse.ArgumentParser(description="exif2timestream cli", formatter_class=SmartFormatter)
 
-parser.add_argument('input',  type=str, nargs="+",
-                    help='Directory containing unsorted images (assumed to be from the same camera)')
+parser.add_argument('input', type=str, nargs="+",
+                    help='Directory(s) containing unsorted images (from the same image source)')
+
 parser.add_argument('-O', "--output-path", type=str,
-                    help="Output directory, will create if nonexistent. Dry run if left empty")
+                    help="Output directory, will create if nonexistent.",
+                    default=".")
+
 parser.add_argument('-n', '--name', type=str, required=True,
-                    help='Name for the timestream')
+                    help='Name for the output timelapse')
+
 parser.add_argument('-d', '--depth', type=int,
                     help="Recursion depth for input directory scanning.")
+
 
 def parse_res(res_str):
     if res_str in ("orig", "original"):
@@ -42,20 +49,20 @@ parser.add_argument('-t', '--output-image-type',
                     choices=['jpeg', 'png', 'tif'], default=['jpeg'], action='append',
                     help="Output image type.")
 
-parser.add_argument('-fa', '--force-align',
+parser.add_argument('-o', "--overwrite",
                     action='store_true', default=False,
-                    help="Forces all images to be rounded to the interval. Where 2 images match a timepoint, the later image will be used.")
+                    help='Overwrite files that already exist.')
 
 parser.add_argument('-rt', "--rotation",
                     choices=[0, 90, 180, 270],
                     help='Rotation in 90° increments. Storing 0 will remove the orientation flag.')
 parser.add_argument('-p', "--pyramid",
                     action='store_true', default=False,
-                    help='Creates pyramidal tiffs.')
+                    help='Create pyramidal tiffs.')
 
 parser.add_argument('-ie', "--ignore-exif",
                     action='store_true', default=False,
-                    help='Flag to totally ignore exif data and attempt to infer the date captured from the filenames.')
+                    help='Flag to totally ignore exif data and attempt to infer the timepoint exclusively from the filenames.')
 
 archive_mode_help = """r|Archive Modes:
     copy:       leave source images in their original location.
@@ -114,20 +121,31 @@ def dt_parse(st):
     except:
         argparse.ArgumentError()
 
+
 parser.add_argument('-s', '--start', type=dt_parse,
                     default=datetime.datetime.fromtimestamp(0),
-                    help='Start datetime, year first day last (2012-01-01T12:10) is a good start')
+                    help='Start datetime, year first day last (2012-01-01T12:10 is a good example) [default=1970-01-01T00:00:00]')
 
 parser.add_argument('-e', '--end', type=dt_parse,
                     default=datetime.datetime.now(),
-                    help='End datetime, year first & day last assumed')
+                    help='End datetime, year first & day last assumed. [default=now]')
 
 parser.add_argument('-i', '--interval', type=str_to_timedelta,
                     default=datetime.timedelta(minutes=5),
-                    help='Interval (suffix eg: 30s, 15m, 1h, 5d')
+                    help='Interval (suffix eg: 30s, 15m, 1h, 5d). [default=5m]')
+
 parser.add_argument('-ts', '--time-shift', type=str_to_timedelta,
                     default=datetime.timedelta(0),
-                    help='Time shift all images by a value (suffix and sign eg: -30s, +15m, 1h, -5d')
+                    help='Time shift all images by a value (suffix and sign eg: -30s, +15m, 1h, -5d)')
+
+parser.add_argument('-da', '--dont-align',
+                    action='store_true', default=False,
+                    help="Don't align any images to the interval. This will probably result in odd timestamps.")
+
+parser.add_argument('-i', '--align-window', type=str_to_timedelta,
+                    default=datetime.timedelta(minutes=2),
+                    help='The the amount of time aligning that is acceptable to match a timepoint (suffix eg: 30s, 2.5m 15m). [default=2m]')
+
 
 args = parser.parse_args()
 
@@ -150,7 +168,8 @@ def main():
         "time_shift": args.time_shift,
         "pyramid": args.pyramid,
         "ignore_exif": args.ignore_exif,
-        "rotation": args.rotation
+        "rotation": args.rotation,
+        "overwrite": args.overwrite
     }
     if args.depth:
         params['depth'] = args.depth
@@ -162,6 +181,7 @@ def main():
                        args.end,
                        args.interval,
                        **params)
+
 
 if __name__ == "__main__":
     main()
