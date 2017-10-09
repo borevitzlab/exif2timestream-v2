@@ -1,12 +1,15 @@
-from distutils.core import setup
+# from distutils.core import setup
+from setuptools import setup, find_packages
+
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
+
 setup(
-    name='exif2timestream-v2',
+    name='exif2timestream',
     version='0.9',
     python_requires='>=3.2',
     packages=['libexif2timestream2'],
-    url='https://borevitzlab.github.io/exif2timestream-v2/',
+    url='https://borevitzlab.github.io/exif2timestream/',
     license='GPLv3',
     author='Gareth Dunstone, Borevitz Lab, Australian Plant Phenomics Facility',
     author_email='gareth.dunstone@anu.edu.au',
@@ -19,6 +22,12 @@ setup(
         "Programming Language :: Python :: 3 :: Only"
         "Topic :: Scientific/Engineering :: Bio-Informatics"
     ],
-    scripts=["exif2timestream-batch", 'exif2timestream-cli'],
+    keywords=['timelapse', 'imaging'],
+    entry_points={
+        'console_scripts': [
+            'exif2timestream-batch=exif2timestream_batch.py',
+            'exif2timestream-cli=exif2timestream_cli.py'
+        ]
+    },
     install_requires=requirements
 )

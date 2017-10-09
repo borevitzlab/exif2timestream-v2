@@ -65,7 +65,7 @@ source_suffix = ['.rst', ".md"]
 master_doc = 'index'
 
 # General information about the project.
-project = 'exif2timestream-v2'
+project = 'exif2timestream'
 copyright = '2017, Gareth Dunstone, Kevin Murray, Tim Brown, Jordan Braiuka'
 author = 'Gareth Dunstone, Kevin Murray, Jordan Braiuka'
 
@@ -122,7 +122,7 @@ html_sidebars = {
 }
 html_theme_options = {
     'description': "Software to convert unstructured directories of images into a tree like file structure.",
-    'github_repo': "exif2timestream-v2",
+    'github_repo': "exif2timestream",
     'github_user': "borevitzlab",
     'github_button': False,
     'github_type': 'star',
@@ -170,7 +170,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'exif2timestream-v2.tex', 'exif2timestream-v2 Documentation',
+    (master_doc, 'exif2timestream.tex', 'exif2timestream Documentation',
      'Gareth Dunstone, Kevin Murray, Tim Brown', 'manual'),
 ]
 
@@ -180,8 +180,8 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc,
-     'exif2timestream-v2',
-     'exif2timestream-v2 Documentation',
+     'exif2timestream',
+     'exif2timestream Documentation',
      [author], 1)
 ]
 
@@ -191,8 +191,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'exif2timestream-v2', 'exif2timestream-v2 Documentation',
-     author, 'exif2timestream-v2', '',
+    (master_doc, 'exif2timestream', 'exif2timestream Documentation',
+     author, 'exif2timestream', '',
      'Miscellaneous'),
 ]
 
