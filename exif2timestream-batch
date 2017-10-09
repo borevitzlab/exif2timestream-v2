@@ -3,8 +3,8 @@ import yaml
 import argparse
 import traceback
 import datetime, re
-from lib.time import verbose_timedelta, str_to_datetime, time_date_to_datetime
-from lib.process import process_timestream
+from libexif2timestream2.time import verbose_timedelta, str_to_datetime, time_date_to_datetime
+from libexif2timestream2.process import process_timestream
 
 parser = argparse.ArgumentParser(description="exif2timestream batch")
 

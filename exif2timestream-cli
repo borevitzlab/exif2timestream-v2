@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
+import glob
 import argparse
 import datetime
 import re
-from lib.time import verbose_timedelta, str_to_datetime
-from lib.process import process_timestream
-from lib.image import detect_backends
+from libexif2timestream2.time import verbose_timedelta, str_to_datetime
+from libexif2timestream2.process import process_timestream
+from libexif2timestream2.image import detect_backends
 
 class SmartFormatter(argparse.HelpFormatter):
     def _split_lines(self, text, width):
@@ -16,7 +17,7 @@ class SmartFormatter(argparse.HelpFormatter):
 parser = argparse.ArgumentParser(description="exif2timestream cli", formatter_class=SmartFormatter)
 
 parser.add_argument('input',  type=str, nargs="+",
-                    help='Directories containing unsorted images (assumed to be from the same camera)')
+                    help='Directory containing unsorted images (assumed to be from the same camera)')
 parser.add_argument('-O', "--output-path", type=str,
                     help="Output directory, will create if nonexistent. Dry run if left empty")
 parser.add_argument('-n', '--name', type=str, required=True,
@@ -30,7 +31,7 @@ def parse_res(res_str):
     if "x" in res_str:
         return list(map(int, res_str.split("x")))
     if "," in res_str:
-        return list(map, int, res_str.split(","))
+        return list(map(int, res_str.split(",")))
 
 
 parser.add_argument('-r', '--resolutions', type=parse_res,
@@ -136,7 +137,11 @@ def main():
     print("Range {} to {}".format(args.start, args.end))
     if args.time_shift:
         print("Time shifting by {}".format(verbose_timedelta(args.time_shift)))
+    sources = []
 
+    for source in args.input:
+        sources.extend(glob.glob(source))
+    print("Sources: \n\t{}".format("\n\t".join(sources)))
     params = {
         "archive_mode": args.archive_mode,
         "archive_path": args.archive_path,
@@ -147,10 +152,16 @@ def main():
         "ignore_exif": args.ignore_exif,
         "rotation": args.rotation
     }
-    
     if args.depth:
         params['depth'] = args.depth
-    print(args.input)
+
+    process_timestream(args.name,
+                       args.input,
+                       args.output_path,
+                       args.start,
+                       args.end,
+                       args.interval,
+                       **params)
 
 if __name__ == "__main__":
     main()
