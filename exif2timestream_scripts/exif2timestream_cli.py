@@ -142,7 +142,7 @@ parser.add_argument('-da', '--dont-align',
                     action='store_true', default=False,
                     help="Don't align any images to the interval. This will probably result in odd timestamps.")
 
-parser.add_argument('-i', '--align-window', type=str_to_timedelta,
+parser.add_argument('-aw', '--align-window', type=str_to_timedelta,
                     default=datetime.timedelta(minutes=2),
                     help='The the amount of time aligning that is acceptable to match a timepoint (suffix eg: 30s, 2.5m 15m). [default=2m]')
 
