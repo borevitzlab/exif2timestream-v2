@@ -1,0 +1,46 @@
+example-1:
+  # source and output directories
+  source_directory: test-data/thermal-source/
+  output_directory: test-data/outputs/
+  # start and end datetimes
+  start: 2016-01-10
+  end: 2018-01-10 10:00
+  # interval (can be specified like 5m or 1hour or 30sec)
+  interval: 5m
+  # rotation to apply to the images
+  rotation: 90
+  # output filetypes (supported jpeg, jpg, tiff, png)
+  # will output to the same directory with the other images of the same resolution.
+  output_filetypes:
+    - jpeg
+  # output resolutions, should warn if it doesnt preserve aspect ratio
+  # use "original" to process without resize
+  output_resolutions:
+    - original
+    - [1920, 1080]
+  # archive mode (archive, archive-rm, copy, move)
+  archive_mode: archive
+  # archive destination file, required for archive and archive-rm modes
+  archive_path: test-data/outputs/example-archive.tar
+
+
+advanced-example-1:
+  # source and output directories
+  source_directory: test-data/thermal-source2/
+  output_directory: test-data/outputs/
+  # time-shift output images
+  time_shift: -12h
+  # limit discovery to this depth under source_directory
+  depth: 0
+  # create pyramidal tiffs as well
+  pyramid: True
+  # suffix to add to name
+  suffix: advanced
+  # start and end datetimes
+  start: 2016-01-10
+  end: 2018-01-10
+  interval: 5m
+  output_filetypes:
+    - jpeg
+  output_resolutions:
+    - original

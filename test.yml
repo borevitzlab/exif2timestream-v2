@@ -1,0 +1,29 @@
+
+thermal-test2:
+  source_directory: test-data/thermal-source2/
+  output_directory: test-data/outputs/
+  depth: 0
+  suffix: testsuffix
+  time_shift: 1d
+  start: 2016-01-10
+  end: 2018-01-10
+  interval: 5m
+  output_filetypes:
+    - jpeg
+  output_resolutions:
+    - [1920, 1080]
+
+thermal-test:
+  source_directory: test-data/thermal-source/
+  output_directory: test-data/outputs/
+  time_shift: 12h
+  start: 2016-01-10
+  end: 2018-01-10
+  interval: 5m
+  output_filetypes:
+    - jpeg
+  output_resolutions:
+    - "original"
+    - [1920, 1080]
+    - [1280, 720]
+#  pyramid: True
