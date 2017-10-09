@@ -5,7 +5,7 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup(
-    name='exif2timestream',
+    name='exif2timestream-v2',
     version='0.9.2',
     python_requires='>=3.2',
     packages=['libexif2timestream2', 'exif2timestream_scripts'],
