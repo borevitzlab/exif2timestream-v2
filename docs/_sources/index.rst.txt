@@ -6,7 +6,6 @@
    :hidden:
 
    ansible
-   genindex
    py-modindex
 
 
