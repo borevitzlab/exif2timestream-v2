@@ -167,26 +167,28 @@ def process_timestream(name, source_directory, output_directory,
                     continue
                 if dt < start:
                     start_index = idx
+                    print(start_index, start, dt)
                     continue
                 if dt > end:
                     end_index = idx
+                    print(end_index, end, dt)
                     break
-
             if interval is None:
-                print("No interval, guessing interval...")
+                print("Interval guess: No interval, guessing...")
                 datetimes = []
                 for src_path in db.keys()[start_index:end_index]:
                     dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
                     if not dt:
                         continue
                     datetimes.append(dt)
-                    if abs(start-dt) > datetime.timedelta(weeks=4):
+                    if dt > start + datetime.timedelta(weeks=4):
                         print("Interval guess: more than 1 month of data, only using the first month")
                         break
                 else:
                     print("Interval guess: less than 1 month of data, interval guess might be wrong")
+                print("Interval guess: Using {} total timepoints to guess interval".format(len(datetimes)))
                 interval = time.infer_interval(datetimes)
-                print("best interval guess: {}m".format(interval.total_seconds()/60))
+                print("Interval guess: {}m".format(interval.total_seconds()/60))
 
             for src_path in tqdm(db.keys()[start_index:end_index]):
                 try:
