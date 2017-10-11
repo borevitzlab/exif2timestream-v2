@@ -4,6 +4,9 @@ import time
 from functools import wraps
 import random
 import string
+import glob
+import datetime
+import shutil
 
 DEFAULT_EXTENSIONS = ["jpeg", "jpg", "tif", "tiff", "cr2", "raw","nef", "png", "json"]
 
@@ -39,27 +42,36 @@ class DirectoryDB(object):
                 raise FileNotFoundError("Path provided doesn't exist")
 
         if dbpath is None:
-            self.dbpath = ".dirdb"
-        if depth is not None:
-            dbpath = "{}-{}".format(dbpath, depth)
-            self.dbpath = "{}-{}".format(self.dbpath, depth)
+            dbpath = ".dirdb-{}".format(datetime.datetime.fromtimestamp(os.path.getmtime(paths[0])).isoformat())
 
-        if len(paths) == 1:
-            self.dbpath = dbpath if dbpath is not None else os.path.join(paths[0], self.dbpath)
-        else:
-            self.dbpath = ".dirdb-multi_{}".format("".join([random.choice(string.ascii_lowercase) for _ in range(4)]))
-        # os.makedirs(os.path.dirname(self.dbpath), exist_ok=True)
-        # print(os.path.dirname(self.dbpath))
+        if depth is not None:
+            self.dbpath = "{}-{}".format(dbpath, depth)
+
         self.path = paths
         self.extensions = extensions
         # go through extensions...
         for i, x in enumerate(self.extensions):
             if x.startswith("."):
                 continue
-            self.extensions[i] = "."+x
+            self.extensions[i] = "." + x
 
         self.db = None
         self.depth = depth
+
+        if len(paths) != 1:
+            self.dbpath = ".dirdb-multi_{}".format("".join([random.choice(string.ascii_lowercase) for _ in range(4)]))
+        else:
+            parentdir = os.path.abspath(os.path.join(paths[0], ".."))
+            self.dbpath = os.path.join(parentdir, self.dbpath)
+            dbfiles = glob.glob(os.path.join(parentdir, ".dirdb-*"))
+            if self.dbpath in dbfiles:
+                dbfiles.remove(self.dbpath)
+            else:
+                for dbfile in sorted(dbfiles):
+                    shutil.move(dbfile, self.dbpath)
+            if len(dbfiles) != 0:
+                self.reindex()
+
 
     @needs_db
     def reindex(self):
