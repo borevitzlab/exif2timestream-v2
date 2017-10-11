@@ -6,7 +6,7 @@
    :hidden:
 
    ansible
-   libexif2timestream
+   libexif2timestream2
 
 
 exif2timestream-v2
