@@ -1,6 +1,10 @@
 import datetime
 import warnings
 from dateutil import parser
+from collections import Counter
+from operator import itemgetter
+import itertools
+import warnings
 
 ts_possible_timestamp_formats = [
     "%Y_%m_%d_%H_%M_%S",
@@ -32,6 +36,39 @@ class TwentyFourHourTimeParserInfo(parser.parserinfo):
             res.tzoffset = 0
         return True
 
+def infer_interval(datetimes, possible_intervals_min=(60, 30, 15, 10, 5)):
+    """
+    infer the interval from a list of datetimes
+
+    They do not need to be aligned
+
+    :param datetimes: list of datetimes
+    :type datetimes: list(datetime.datetime)
+    :param possible_intervals_min:
+    :return: interval as a timedelta
+    """
+    possible_intervals = [datetime.timedelta(minutes=x) for x in possible_intervals_min]
+    datetimes = [list(g) for k, g in itertools.groupby(datetimes, key=datetime.datetime.toordinal)]
+    potential = []
+
+    for day in datetimes:
+
+        diffs = [abs(j - i) for i, j in zip(day[:-1], day[1:])]
+        diffs = [round_timedelta(d, datetime.timedelta(minutes=1)) for d in diffs]
+        sorted_diffs = sorted(Counter(diffs).most_common(), key=itemgetter(1), reverse=True)
+        for pos_int in sorted_diffs:
+            if pos_int[0] in possible_intervals:
+                potential.append(pos_int[0])
+                break
+
+    if not len(potential):
+        warnings.warn("Couldnt infer interval, leaving at default (5m)", category=UserWarning)
+        print("WARNING: Couldnt infer interval, leaving at default (5m)")
+        return datetime.timedelta(minutes=5)
+
+    sorted_potential = sorted(Counter(potential).most_common(), key=itemgetter(1), reverse=True)
+    return sorted_potential[0][0]
+
 
 def dt_to_path(dt):
     """
@@ -56,7 +93,25 @@ def dt_to_filename(dt, name=None):
     else:
         return dt.strftime(ts_timestamp_format)
 
-def round_time(dt, round=datetime.timedelta(minutes=5)):
+def round_timedelta(td, period):
+    """
+    Rounds the given timedelta by the given timedelta period
+    stolen from: https://stackoverflow.com/questions/42299312/rounding-a-timedelta-to-the-nearest-15-minutes
+
+    :param td: timedelta to round
+    :type td: datetime.timedelta
+    :param period: timedelta period to round by.
+    :type period: datetime.timedelta
+    """
+    period_seconds = period.total_seconds()
+    half_period_seconds = period_seconds / 2
+    remainder = td.total_seconds() % period_seconds
+    if remainder >= half_period_seconds:
+        return datetime.timedelta(seconds=td.total_seconds() + (period_seconds - remainder))
+    else:
+        return datetime.timedelta(seconds=td.total_seconds() - remainder)
+
+def round_datetime(dt, round=datetime.timedelta(minutes=5)):
     """
     Round a datetime object to a multiple of a timedelta
 

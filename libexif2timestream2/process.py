@@ -86,7 +86,8 @@ def process_image(dt, src_path, output_directory, name, name_suffix,
 
 
 def process_timestream(name, source_directory, output_directory,
-                       start, end, interval,
+                       start, end,
+                       interval=None,
                        depth=None,
                        time_shift=None,
                        extensions=(".jpeg",),
@@ -160,6 +161,24 @@ def process_timestream(name, source_directory, output_directory,
         warned = False
         with DirectoryDB(source_directory, depth=depth) as db:
             progressbar = tqdm(total=len(db.keys()))
+            if interval is None:
+                print("No interval, guessing interval...")
+                datetimes = []
+                for src_path in db.keys():
+                    dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
+                    if not dt:
+                        continue
+                    if not start < dt < end:
+                        continue
+                    datetimes.append(dt)
+                    if start-dt > datetime.timedelta(weeks=2):
+                        print("Interval guess: more than 2 weeks of data")
+                        break
+                else:
+                    print("Interval guess: less than 2 weeks of data, interval guess might be wrong")
+                interval = time.infer_interval(datetimes)
+                print("best interval guess: {}m".format(interval.total_seconds()/60))
+
             for src_path in db.keys():
                 try:
                     src_path = src_path.decode('utf-8')
@@ -181,7 +200,7 @@ def process_timestream(name, source_directory, output_directory,
                         archiver += src_path
 
                     if not dont_align:
-                        dtn = time.round_time(dt, interval)
+                        dtn = time.round_datetime(dt, interval)
                         if abs((dtn - dt).total_seconds()) > align_window.total_seconds():
                             continue
                         else:

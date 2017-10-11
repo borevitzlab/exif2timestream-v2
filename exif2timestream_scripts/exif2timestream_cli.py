@@ -131,7 +131,6 @@ parser.add_argument('-e', '--end', type=dt_parse,
                     help='End datetime, year first & day last assumed. [default=now]')
 
 parser.add_argument('-i', '--interval', type=str_to_timedelta,
-                    default=datetime.timedelta(minutes=5),
                     help='Interval (suffix eg: 30s, 15m, 1h, 5d). [default=5m]')
 
 parser.add_argument('-ts', '--time-shift', type=str_to_timedelta,

@@ -42,10 +42,10 @@ class DirectoryDB(object):
                 raise FileNotFoundError("Path provided doesn't exist")
 
         if dbpath is None:
-            dbpath = ".dirdb-{}".format(datetime.datetime.fromtimestamp(os.path.getmtime(paths[0])).isoformat())
+            self.dbpath = ".dirdb-{}".format(datetime.datetime.fromtimestamp(os.path.getmtime(paths[0])).isoformat())
 
         if depth is not None:
-            self.dbpath = "{}-{}".format(dbpath, depth)
+            self.dbpath = "{}-{}".format(self.dbpath, depth)
 
         self.path = paths
         self.extensions = extensions
