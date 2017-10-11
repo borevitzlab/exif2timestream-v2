@@ -160,19 +160,18 @@ def process_timestream(name, source_directory, output_directory,
     try:
         with DirectoryDB(source_directory, depth=depth) as db:
             start_index, end_index = 0, len(db.keys())
-            print("Calculating start and end image indexes.")
+            print("Calculating start and end image indexes from {} total timepoints.".format(len(db.keys())))
             for idx, src_path in enumerate(db.keys()):
                 dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
                 if not dt:
                     continue
                 if dt < start:
                     start_index = idx
-                    print(start_index, start, dt)
                     continue
                 if dt > end:
                     end_index = idx
-                    print(end_index, end, dt)
                     break
+            print("start/end indexes {}:{}".format(start_index, end_index))
             if interval is None:
                 print("Interval guess: No interval, guessing...")
                 datetimes = []
