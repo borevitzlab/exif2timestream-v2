@@ -158,43 +158,43 @@ def process_timestream(name, source_directory, output_directory,
         archiver.open()
 
     try:
-        warned = False
         with DirectoryDB(source_directory, depth=depth) as db:
-            progressbar = tqdm(total=len(db.keys()))
+            start_index, end_index = 0, len(db.keys())
+            print("Calculating start and end image indexes.")
+            for idx, src_path in enumerate(db.keys()):
+                dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
+                if not dt:
+                    continue
+                if dt < start:
+                    start_index = idx
+                    continue
+                if dt > end:
+                    end_index = idx
+                    break
+
             if interval is None:
                 print("No interval, guessing interval...")
                 datetimes = []
-                for src_path in db.keys():
+                for src_path in db.keys()[start_index:end_index]:
                     dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
                     if not dt:
                         continue
-                    if not start < dt < end:
-                        continue
                     datetimes.append(dt)
-                    if start-dt > datetime.timedelta(weeks=2):
-                        print("Interval guess: more than 2 weeks of data")
+                    if abs(start-dt) > datetime.timedelta(weeks=4):
+                        print("Interval guess: more than 1 month of data, only using the first month")
                         break
                 else:
-                    print("Interval guess: less than 2 weeks of data, interval guess might be wrong")
+                    print("Interval guess: less than 1 month of data, interval guess might be wrong")
                 interval = time.infer_interval(datetimes)
                 print("best interval guess: {}m".format(interval.total_seconds()/60))
 
-            for src_path in db.keys():
+            for src_path in tqdm(db.keys()[start_index:end_index]):
                 try:
                     src_path = src_path.decode('utf-8')
                     dt = dt_get(src_path, ignore_exif=ignore_exif)
                     if not dt:
                         print("Couldnt get datetime for {}".format(os.path.basename(src_path)))
                         continue
-
-                    if not start < dt < end:
-                        if not warned:
-                            print("OOR {}\t{} to {}".format(dt.isoformat(), start.isoformat(), end.isoformat()))
-                            warned = True
-                        continue
-                    if warned:
-                        print("INR {}\t{} to {}".format(dt.isoformat(), start.isoformat(), end.isoformat()))
-                        warned = False
 
                     if archiver:
                         archiver += src_path
@@ -207,18 +207,6 @@ def process_timestream(name, source_directory, output_directory,
                             dt = dtn
                     if time_shift:
                         dt = dt + time_shift
-
-                    # this here is how we used to deal with raws. Its pretty slow...
-                    # if src_path.lower().endswith((".cr2", '.nef')) and USE_RAWKIT:
-                    #     with tempfile.NamedTemporaryFile(suffix=".tiff") as f, Raw(src_path) as rawfile:
-                    #         rawfile.save(filename=f.name, filetype='tiff')
-                    #         process_image(dt,
-                    #                       f.name,
-                    #                       output_directory,
-                    #                       name, name_suffix,
-                    #                       extensions, resolutions, rotation,
-                    #                       pyramid)
-                    # else:
 
                     process_image(dt,
                                   src_path,
@@ -234,9 +222,7 @@ def process_timestream(name, source_directory, output_directory,
                 except Exception as e:
                     print("Unhandled Exception!")
                     traceback.print_exc()
-                finally:
-                    progressbar.update(1)
-            progressbar.close()
+
     except KeyboardInterrupt:
         sys.exit(1)
     except Exception as e:

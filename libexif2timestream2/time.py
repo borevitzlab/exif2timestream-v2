@@ -15,6 +15,7 @@ ts_possible_timestamp_formats = [
 ts_timestamp_format = "%Y_%m_%d_%H_%M_%S_00"
 ts_path_format = "%Y/%Y_%m/%Y_%m_%d/%Y_%m_%d_%H/"
 
+
 class TwentyFourHourTimeParserInfo(parser.parserinfo):
     """
     Parserinfo for a 24 hour time.
@@ -36,6 +37,7 @@ class TwentyFourHourTimeParserInfo(parser.parserinfo):
             res.tzoffset = 0
         return True
 
+
 def infer_interval(datetimes, possible_intervals_min=(60, 30, 15, 10, 5)):
     """
     infer the interval from a list of datetimes
@@ -52,7 +54,6 @@ def infer_interval(datetimes, possible_intervals_min=(60, 30, 15, 10, 5)):
     potential = []
 
     for day in datetimes:
-
         diffs = [abs(j - i) for i, j in zip(day[:-1], day[1:])]
         diffs = [round_timedelta(d, datetime.timedelta(minutes=1)) for d in diffs]
         sorted_diffs = sorted(Counter(diffs).most_common(), key=itemgetter(1), reverse=True)
@@ -93,6 +94,7 @@ def dt_to_filename(dt, name=None):
     else:
         return dt.strftime(ts_timestamp_format)
 
+
 def round_timedelta(td, period):
     """
     Rounds the given timedelta by the given timedelta period
@@ -110,6 +112,7 @@ def round_timedelta(td, period):
         return datetime.timedelta(seconds=td.total_seconds() + (period_seconds - remainder))
     else:
         return datetime.timedelta(seconds=td.total_seconds() - remainder)
+
 
 def round_datetime(dt, round=datetime.timedelta(minutes=5)):
     """
@@ -146,6 +149,14 @@ def timeshift(dt, by=datetime.timedelta(hours=12)):
 
 
 def time_date_to_datetime(d):
+    """
+    Turns a datetime.date or a datetime.time into a full datetime
+
+    :param d: date
+    :return: full datetime, with the not provided parts filled with now
+    """
+
+
     if isinstance(d, datetime.time):
         d = datetime.datetime.combine(datetime.datetime.today(), d)
     elif isinstance(d, datetime.date):
@@ -153,6 +164,7 @@ def time_date_to_datetime(d):
     else:
         raise ValueError("Couldnt convert date/time to datetime")
     return d
+
 
 def verbose_timedelta(delta):
     """
@@ -188,10 +200,9 @@ def str_to_datetime(datetime_str, extra=None):
     """
     if isinstance(datetime_str, datetime.datetime):
         return datetime_str
-    
+
     if isinstance(datetime_str, datetime.time) or isinstance(datetime_str, datetime.date):
         return time_date_to_datetime(datetime_str)
-
 
     if extra:
         for f in extra:

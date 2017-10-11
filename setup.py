@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='exif2timestream-v2',
-    version='0.11.0',
+    version='0.11.2',
     # python_requires='>=3.2',
     packages=['libexif2timestream2', 'exif2timestream_scripts'],
     url='https://borevitzlab.github.io/exif2timestream/',
