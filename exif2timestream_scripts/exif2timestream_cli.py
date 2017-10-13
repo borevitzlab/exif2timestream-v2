@@ -33,20 +33,19 @@ parser.add_argument('-d', '--depth', type=int,
 
 
 def parse_res(res_str):
-    if res_str in ("orig", "original"):
+    if res_str in ("orig", "original", 'source', 'fullres'):
         return None
     if "x" in res_str:
         return list(map(int, res_str.split("x")))
     if "," in res_str:
         return list(map(int, res_str.split(",")))
 
-
 parser.add_argument('-r', '--resolutions', type=parse_res,
                     default=[], action='append',
                     help="Resolutions to resize to. (eg -r orig -r 1280x720 -r 1920x1080)")
 
 parser.add_argument('-t', '--output-image-type',
-                    choices=['jpeg', 'png', 'tif'], default=['jpeg'], action='append',
+                    choices=['jpeg', 'png', 'tif', 'jpg', 'source'], default=['jpg'], action='append',
                     help="Output image type.")
 
 parser.add_argument('-o', "--overwrite",
@@ -145,15 +144,14 @@ parser.add_argument('-aw', '--align-window', type=str_to_timedelta,
                     default=datetime.timedelta(minutes=2),
                     help='The the amount of time aligning that is acceptable to match a timepoint (suffix eg: 30s, 2.5m 15m). [default=2m]')
 
-
 args = parser.parse_args()
 
 
 def main():
     detect_backends()
-    print("Range {} to {}".format(args.start, args.end))
+    print("time range: {} to {}".format(args.start, args.end))
     if args.time_shift:
-        print("Time shifting by {}".format(verbose_timedelta(args.time_shift)))
+        print("time shifting by {}".format(verbose_timedelta(args.time_shift)))
     sources = []
 
     for source in args.input:

@@ -1,14 +1,15 @@
-from . import exif
 from . import image
 from . import time
+from . import exif
 from .directorydb import DirectoryDB
 import traceback
-# import shutil
 import os
+import shutil
 import sys
 from .archiver import Archiver
 from tqdm import tqdm
 import datetime
+
 # USE_RAWKIT = False
 # if not os.environ.get("NO_RAWKIT", False):
 #     try:
@@ -22,22 +23,28 @@ ts_top_structure = "{name}~{width}{suffix}"
 ts_name_structure = ts_top_structure + "_{dt}.{ext}"
 
 
-def dt_get(image_file_path, ignore_exif=False):
-    """
-    attempts to get a datetime object from an image using first exif data, and then the filename.
+if os.environ.get("PROFILE"):
+    import cProfile
 
-    :param image_file_path: image file path to get the datetime from
-    :param ignore_exif: whether to use exif data for the image or not
-    :return: datetime.datetime or None
-    """
-
-    if ignore_exif:
-        return exif.dt_from_filename(image_file_path)
-    return exif.dt_from_exif(image_file_path) or exif.dt_from_filename(image_file_path)
-
+    def profile(func):
+        def profiled_func(*args, **kwargs):
+            profile = cProfile.Profile()
+            try:
+                profile.enable()
+                result = func(*args, **kwargs)
+                profile.disable()
+                return result
+            finally:
+                profile.print_stats()
+        return profiled_func
+else:
+    def profile(func):
+        def profiled(*args, **kwargs):
+            func(*args, **kwargs)
+        return profiled
 
 def get_top_name(name, resolution=None, name_suffix=""):
-    if resolution is None or resolution in ['original', 'orig', 'source']:
+    if resolution is None or resolution in ['original', 'orig', 'source', 'fullres']:
         return ts_top_structure.format(name=name, width="fullres", suffix=name_suffix)
     return ts_top_structure.format(name=name, width=resolution[0], suffix=name_suffix)
 
@@ -54,6 +61,7 @@ def get_name(name, dt, extension, resolution=None, name_suffix=""):
 def process_image(dt, src_path, output_directory, name, name_suffix,
                   extensions, resolutions, rotation, overwrite,
                   pyramid):
+
     for res in resolutions:
         output_path = os.path.join(output_directory,
                                    get_top_name(name, resolution=res, name_suffix=name_suffix),
@@ -61,10 +69,16 @@ def process_image(dt, src_path, output_directory, name, name_suffix,
         os.makedirs(output_path, exist_ok=True)
 
         for ext in extensions:
+            if ext == 'source':
+                ext = os.path.splitext(src_path)[-1]
             image_name = get_name(name, dt, extension=ext, resolution=res, name_suffix=name_suffix)
             image_path = os.path.join(output_path, image_name)
             if os.path.exists(image_path) and not overwrite:
                 continue
+            if ext == os.path.splitext(src_path)[-1] and res is None and rotation == 0:
+                shutil.copy(src_path, image_path)
+                continue
+
             image.resize(src_path,
                          image_path,
                          rotate=rotation,
@@ -84,8 +98,8 @@ def process_image(dt, src_path, output_directory, name, name_suffix,
         image.pyramid(src_path,
                       image_path)
 
-
-def process_timestream(name, source_directory, output_directory,
+@profile
+def process_timestream(name, source, output_directory,
                        start, end,
                        interval=None,
                        depth=None,
@@ -106,7 +120,7 @@ def process_timestream(name, source_directory, output_directory,
     Processes a set of images in source directory, and outputs them to output_directory
 
     :param name: output filename prefix
-    :param source_directory: source directory of images
+    :param source: source directories of images
     :param output_directory: output directory to write images to
     :param start: start datetime
     :type start: datetime.datetime
@@ -154,49 +168,114 @@ def process_timestream(name, source_directory, output_directory,
                                         "{}-{}".format(name, "archive"))
         if not archive_path.endswith(".tar"):
             archive_path = archive_path + ".tar"
-        archiver = Archiver(archive_path, append=archive_mode == "archive-rm")
+        archiver = Archiver(archive_path, mode='a' if archive_mode == "archive-rm" else 'w')
         archiver.open()
 
+
+    if os.path.splitext(source[0])[-1] == '.tar':
+        print("Running from archived tarfile")
+        try:
+            # explicitly open for reading
+            with Archiver(source[0], mode='r:') as db:
+                if interval is None:
+                    print("interval guess: No interval, guessing...")
+                    datetimes = []
+                    for src_path, dt in db.items_nocompress():
+                        if not dt:
+                            continue
+                        if dt < start:
+                            continue
+                        if dt > end:
+                            break
+                        datetimes.append(dt)
+
+                        if dt > start + datetime.timedelta(weeks=4):
+                            print("interval guess: more than 1 month of data, only using the first month")
+                            break
+                    else:
+                        print("interval guess: less than 1 month of data, interval guess might be wrong")
+                    print("interval guess: Using {} total timepoints to guess interval".format(len(datetimes)))
+                    interval = time.infer_interval(datetimes)
+                    print("interval guess: {}m".format(interval.total_seconds() / 60))
+
+                for src_path, dt in tqdm(db.items(), total=len(db.items_nocompress())):
+                    try:
+
+                        if archiver:
+                            archiver += src_path
+                        if not ignore_exif:
+                            dt = exif.dt_get(src_path, ignore_exif=ignore_exif)
+
+                        if not dt:
+                            continue
+                        if dt < start:
+                            continue
+                        if dt > end:
+                            break
+
+                        if not dont_align:
+                            dtn = time.round_datetime(dt, interval)
+                            if abs((dtn - dt).total_seconds()) > align_window.total_seconds():
+                                continue
+                            else:
+                                dt = dtn
+                        if time_shift:
+                            dt = dt + time_shift
+
+                        process_image(dt,
+                                      src_path,
+                                      output_directory,
+                                      name, name_suffix,
+                                      extensions, resolutions, rotation, overwrite,
+                                      pyramid)
+                    except KeyboardInterrupt:
+                        sys.exit(1)
+                    except Exception as e:
+                        print("Unhandled Exception!")
+                        traceback.print_exc()
+        except KeyboardInterrupt:
+            sys.exit(1)
+        except Exception as e:
+            traceback.print_exc()
+            sys.exit(1)
+        finally:
+            if archiver:
+                archiver.close()
+        sys.exit(0)
+
     try:
-        with DirectoryDB(source_directory, depth=depth) as db:
+        with DirectoryDB(source, depth=depth, ignore_exif=ignore_exif) as db:
             start_index, end_index = 0, len(db.keys())
-            print("Calculating start and end image indexes from {} total timepoints.".format(len(db.keys())))
-            for idx, src_path in enumerate(db.keys()):
-                dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
+            print("calculating start and end image indexes from {} total timepoints.".format(len(db.keys())))
+            print("start/end of all images: {} --- {}".format(min(db.values()),
+                                                                  max(db.values())))
+            for idx, (src_path, dt) in enumerate(db.items()):
                 if not dt:
                     continue
                 if dt < start:
                     start_index = idx
                     continue
+
                 if dt > end:
                     end_index = idx
                     break
             print("start/end indexes {}:{}".format(start_index, end_index))
             if interval is None:
-                print("Interval guess: No interval, guessing...")
+                print("interval guess: No interval, guessing...")
                 datetimes = []
-                for src_path in db.keys()[start_index:end_index]:
-                    dt = dt_get(src_path.decode("utf-8"), ignore_exif=ignore_exif)
-                    if not dt:
-                        continue
+                for src_path, dt in db.items()[start_index:end_index]:
                     datetimes.append(dt)
                     if dt > start + datetime.timedelta(weeks=4):
-                        print("Interval guess: more than 1 month of data, only using the first month")
+                        print("interval guess: more than 1 month of data, only using the first month")
                         break
                 else:
-                    print("Interval guess: less than 1 month of data, interval guess might be wrong")
-                print("Interval guess: Using {} total timepoints to guess interval".format(len(datetimes)))
+                    print("interval guess: less than 1 month of data, interval guess might be wrong")
+                print("interval guess: Using {} total timepoints to guess interval".format(len(datetimes)))
                 interval = time.infer_interval(datetimes)
-                print("Interval guess: {}m".format(interval.total_seconds()/60))
+                print("interval guess: {}m".format(interval.total_seconds() / 60))
 
-            for src_path in tqdm(db.keys()[start_index:end_index]):
+            for src_path, dt in tqdm(db.items()[start_index:end_index]):
                 try:
-                    src_path = src_path.decode('utf-8')
-                    dt = dt_get(src_path, ignore_exif=ignore_exif)
-                    if not dt:
-                        print("Couldnt get datetime for {}".format(os.path.basename(src_path)))
-                        continue
-
                     if archiver:
                         archiver += src_path
 

@@ -2,6 +2,26 @@ import piexif
 from . import time
 import os
 
+
+def dt_get(image_file_path, ignore_exif=False):
+    """
+    attempts to get a datetime object from an image using first exif data, and then the filename.
+
+    :param image_file_path: image file path to get the datetime from
+    :param ignore_exif: whether to use exif data for the image or not
+    :return: datetime.datetime or None
+    """
+
+    if ignore_exif:
+        return dt_from_filename(image_file_path)
+
+    v = dt_from_exif(image_file_path) or dt_from_filename(image_file_path)
+
+    if v is None:
+        print("Couldnt get datetime from: {}".format(image_file_path))
+    return v
+
+
 def transplant_exif(from_file, to_file):
     """
     Transplants exif from one image to another
@@ -19,7 +39,6 @@ def transplant_exif(from_file, to_file):
     # exif_dest.exif.primary.Orientation = exif_source.exif.primary.Orientation
     # print(exif_source.exif.primary.Orientation)
     # exif_dest.writeFile(to_file)
-
 
 
 def dt_from_filename(filename, split_char='-'):
@@ -61,6 +80,7 @@ def dt_from_exif(from_file):
         return time.str_to_datetime(dtoriginal.replace(":", ""))
     except:
         return None
+
 
 class ExifContext(object):
     def __init__(self, image_file, destination=None):

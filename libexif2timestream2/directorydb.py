@@ -1,14 +1,17 @@
-import dbm
 import os
-import time
+from .time import str_to_datetime
 from functools import wraps
 import random
 import string
 import glob
 import datetime
+import shelve
 import shutil
+from operator import itemgetter
+from .exif import dt_get
 
-DEFAULT_EXTENSIONS = ["jpeg", "jpg", "tif", "tiff", "cr2", "raw","nef", "png", "json"]
+DEFAULT_EXTENSIONS = ["jpeg", "jpg", "tif", "tiff", "cr2", "raw", "nef", "png", "json"]
+
 
 def needs_db(f):
     @wraps(f)
@@ -19,11 +22,13 @@ def needs_db(f):
 
     return wrapper
 
+
 class DirectoryDB(object):
     def __init__(self, paths,
                  extensions=DEFAULT_EXTENSIONS,
                  depth=None,
-                 dbpath=None):
+                 dbpath=None,
+                 ignore_exif=False):
         """
         Directory database implementation.
         Recursively stores the paths for all files in the directroy.
@@ -35,6 +40,7 @@ class DirectoryDB(object):
         :param extensions: override the default extensions
         :param dbpath: override the directory database path.
         """
+        self.ignore_exif = ignore_exif
         paths = list(paths)
         paths.sort()
         for path in paths:
@@ -42,10 +48,13 @@ class DirectoryDB(object):
                 raise FileNotFoundError("Path provided doesn't exist")
 
         if dbpath is None:
-            self.dbpath = ".dirdb-{}".format(datetime.datetime.fromtimestamp(os.path.getmtime(paths[0])).isoformat())
+            self.dbpath = ".dirdb-{}-{}".format(os.path.basename(paths[0]),
+                                                datetime.datetime.fromtimestamp(os.path.getmtime(paths[0])).isoformat())
 
         if depth is not None:
             self.dbpath = "{}-{}".format(self.dbpath, depth)
+        if ignore_exif:
+            self.dbpath = self.dbpath + "-ie"
 
         self.path = paths
         self.extensions = extensions
@@ -63,7 +72,7 @@ class DirectoryDB(object):
         else:
             parentdir = os.path.abspath(os.path.join(paths[0], ".."))
             self.dbpath = os.path.join(parentdir, self.dbpath)
-            dbfiles = glob.glob(os.path.join(parentdir, ".dirdb-*"))
+            dbfiles = glob.glob(os.path.join(parentdir, ".dirdb-{}*".format(os.path.basename(paths[0]))))
             if self.dbpath in dbfiles:
                 dbfiles.remove(self.dbpath)
             else:
@@ -71,7 +80,6 @@ class DirectoryDB(object):
                     shutil.move(dbfile, self.dbpath)
             if len(dbfiles) != 0:
                 self.reindex()
-
 
     @needs_db
     def reindex(self):
@@ -82,33 +90,44 @@ class DirectoryDB(object):
         for path in self.path:
             for idx, (root, _, files) in enumerate(os.walk(path, topdown=True)):
                 for file in filter(lambda fp: fp.lower().endswith(tuple(self.extensions)), files):
-                    self.db[os.path.join(root, file)] = str(time.time())
+                    v = dt_get(file, ignore_exif=self.ignore_exif)
+                    if v:
+                        self.db[os.path.join(root, file)] = v
                 if self.depth is not None and idx >= self.depth:
                     break
 
     @needs_db
     def __getitem__(self, key):
-        if type(key) not in (bytes, str):
+        if type(key) is not str:
             raise TypeError("Key is not bytes or string")
-        if type(key) is str:
-            key = bytes(key, 'utf-8')
         if os.path.exists(key):
-            self.db[key] = time.time()
-        return self.db[key]
+            v = dt_get(key, ignore_exif=self.ignore_exif)
+            if v:
+                self.db[key] = v
+            return v
+        return str_to_datetime(self.db[key])
 
     @needs_db
     def __contains__(self, key):
-        if type(key) not in (bytes, str):
+        if type(key) is not str:
             raise TypeError("Key is not bytes or string")
-        if type(key) is str:
-            key = bytes(key, 'utf-8')
         if os.path.exists(key):
-            self.db[key] = time.time()
+            v = dt_get(key, ignore_exif=self.ignore_exif)
+            if v:
+                self.db[key] = v
         return key in self.db.keys()
 
     @needs_db
     def keys(self):
         return sorted(self.db.keys())
+
+    @needs_db
+    def values(self):
+        return sorted([self[k] for k in self.db.keys()])
+
+    @needs_db
+    def items(self, by_key=False):
+        return sorted([(k, self[k]) for k in self.db.keys()], key=itemgetter(0 if by_key else 1))
 
     def __enter__(self):
         return self.open()
@@ -118,7 +137,7 @@ class DirectoryDB(object):
 
     def open(self):
         if self.db is None:
-            self.db = dbm.open(self.dbpath, flag='c')
+            self.db = shelve.open(self.dbpath, flag='c')
         if len(self.db.keys()) < 1:
             self.reindex()
         return self
@@ -126,5 +145,3 @@ class DirectoryDB(object):
     def close(self):
         self.db.close()
         self.db = None
-
-

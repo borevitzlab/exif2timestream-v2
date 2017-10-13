@@ -156,7 +156,6 @@ def time_date_to_datetime(d):
     :return: full datetime, with the not provided parts filled with now
     """
 
-
     if isinstance(d, datetime.time):
         d = datetime.datetime.combine(datetime.datetime.today(), d)
     elif isinstance(d, datetime.date):
